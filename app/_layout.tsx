@@ -1,37 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { SessionProvider } from './ctx';
+import {
+  MD3DarkTheme as DarkTheme, DefaultTheme, PaperProvider
+} from 'react-native-paper';
+import { useStorageState } from './useStorageState';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { createTables, dropTable, populateDatabase } from '@/services/database';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
+  const [[isLoadingTheme, theme], setTheme] = useStorageState('theme');
+  const themeJson = {
+    'dark': DarkTheme,
+    'default': DefaultTheme
   }
 
+  useEffect(() => {
+    createTables();
+  }, []);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <PaperProvider theme={theme === "dark" ? themeJson['dark'] : themeJson['default']}>
+      <SessionProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="forgot-password" />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
+        </Stack>
+      </SessionProvider>
+    </PaperProvider >
   );
 }

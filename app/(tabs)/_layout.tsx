@@ -1,34 +1,60 @@
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
+import { TabBarIcon } from '@/components';
+import { Text, useTheme } from 'react-native-paper';
+import { useSession } from '../ctx';
+import { syncBothDatabase } from '@/services/database';
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { session, isLoading } = useSession();
+  const theme = useTheme();
+
+  if (isLoading) {
+    return <Text>Carregando...</Text>
+  }
+
+  if (!session) {
+    return <Redirect href="/login" />
+  } else {
+    syncBothDatabase();
+  }
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarStyle: {
+          backgroundColor: theme.colors.background,
+        },
         headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
+          unmountOnBlur: true,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="registroFraldas"
         options={{
-          title: 'Explore',
+          title: 'Registro de Fraldas',
+          unmountOnBlur: true,
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
+            <TabBarIcon name={focused ? 'pencil' : 'pencil-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'people' : 'people-outline'} color={color} />
           ),
         }}
       />
